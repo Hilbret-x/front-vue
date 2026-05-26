@@ -1,7 +1,14 @@
 // 引入axios
 import axios from 'axios';
 
-let baseUrl="http://localhost:8000/";
+const getDefaultBaseUrl = () => {
+    const hostname = window.location.hostname || 'localhost';
+    return `http://${hostname}:8000/`;
+};
+
+const normalizeBaseUrl = (url) => url.endsWith('/') ? url : `${url}/`;
+
+const baseUrl = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL || getDefaultBaseUrl());
 // 创建axios实例
 const httpService = axios.create({
     // url前缀-'http:xxx.xxx'

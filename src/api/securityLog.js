@@ -31,7 +31,7 @@ export function exportLogs(type = '', format = 'csv') {
     // 由于封装的 get() 不支持设置 responseType，需要直接调用 axios 实例
     import('axios').then(({ default: axios }) => {
       axios({
-        url: `http://localhost:8000${base}/export`,
+        url: new URL(`${base}/export`, request.getServerUrl()).toString(),
         method: 'get',
         params: { type, format },
         responseType: 'blob',
