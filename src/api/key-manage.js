@@ -1,5 +1,5 @@
 // src/api/key-manage.js
-import { get } from '@/axios/request.js';
+import { get, post } from '@/axios/request.js';
 
 /**
  * 密钥池管理相关API
@@ -54,9 +54,21 @@ const keyManageApi = {
    * @param {string} stationName - 充电桩Name
    * @returns {Promise}
    */
-  getRefillHistory: (stationName) => {
-    return get(`/api/key-management/getAddkeyLog?stationName=${stationName}`);
-  } 
+  getRefillHistory: (stationName, date = '') => {
+    const params = new URLSearchParams({ stationName });
+    if (date) {
+      params.set('date', date);
+    }
+    return get(`/api/key-management/getAddkeyLog?${params.toString()}`);
+  },
+
+  getRefillLogRetention: () => {
+    return get('/api/key-management/addkeyLogRetention');
+  },
+
+  updateRefillLogRetention: (retentionDays) => {
+    return post('/api/key-management/addkeyLogRetention', { retentionDays });
+  }
 
 };
 

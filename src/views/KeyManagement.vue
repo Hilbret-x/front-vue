@@ -80,6 +80,27 @@
                         </el-table>
                     </el-tab-pane>
                     <el-tab-pane label="补充记录" name="refillHistory">
+                        <div class="refill-toolbar">
+                            <el-date-picker
+                                v-model="refillHistoryDate"
+                                type="date"
+                                value-format="YYYY-MM-DD"
+                                placeholder="选择补充日期"
+                                clearable
+                                size="small"
+                                @change="reloadRefillHistory"
+                            />
+                            <el-input-number
+                                v-model="refillLogRetentionDays"
+                                :min="1"
+                                :max="365"
+                                size="small"
+                            />
+                            <el-button size="small" type="primary" @click="saveRefillLogRetention">
+                                保存记录保留天数
+                            </el-button>
+                            <el-button size="small" @click="reloadRefillHistory">刷新</el-button>
+                        </div>
                         <el-table :data="detailData.refillHistory" border stripe style="width: 100%">
                             <el-table-column prop="secretKeyId" label="密钥ID" align="center"></el-table-column>
                             <el-table-column prop="keyContent" label="密钥内容" align="center"></el-table-column>
@@ -121,6 +142,9 @@ const alerts = ref([]);
 const snapshotData = ref({ stations: [] });
 const keyMaterials = ref([]);
 const currentStationId = ref('');
+const currentStationName = ref('');
+const refillHistoryDate = ref('');
+const refillLogRetentionDays = ref(7);
 const detailData = ref({
     summary: {},
     availableKeys: [],
@@ -234,9 +258,9 @@ const fetchUsageRecords = async (stationName) => {
 };
 
 // 获取补充记录
-const fetchRefillHistory = async (stationName) => {
+const fetchRefillHistory = async (stationName, date = '') => {
     try {
-        const response = await keyManageApi.getRefillHistory(stationName);
+        const response = await keyManageApi.getRefillHistory(stationName, date);
         console.log(response);
         
         return Array.isArray(response.data.data) ? response.data.data : [];
@@ -247,6 +271,33 @@ const fetchRefillHistory = async (stationName) => {
     }
 };
 
+const fetchRefillLogRetention = async () => {
+    try {
+        const response = await keyManageApi.getRefillLogRetention();
+        refillLogRetentionDays.value = Number(response.data.data) || 7;
+    } catch (error) {
+        console.error('获取补充记录保留天数失败:', error);
+        refillLogRetentionDays.value = 7;
+    }
+};
+
+const saveRefillLogRetention = async () => {
+    try {
+        const response = await keyManageApi.updateRefillLogRetention(refillLogRetentionDays.value);
+        refillLogRetentionDays.value = Number(response.data.data) || refillLogRetentionDays.value;
+        ElMessage.success('补充记录保留天数已保存');
+        await reloadRefillHistory();
+    } catch (error) {
+        console.error('保存补充记录保留天数失败:', error);
+        ElMessage.error('保存补充记录保留天数失败');
+    }
+};
+
+const reloadRefillHistory = async () => {
+    if (!currentStationName.value) return;
+    detailData.value.refillHistory = await fetchRefillHistory(currentStationName.value, refillHistoryDate.value);
+};
+
 // 获取密钥信息
 const refreshPools = () => {
     fetchKeyPools();
@@ -255,9 +306,12 @@ const refreshPools = () => {
 // 打开详情弹窗
 const openDetailDialog = async (stationId, stationName) => {
     currentStationId.value = stationId;
+    currentStationName.value = stationName;
+    refillHistoryDate.value = '';
     detailData.value.availableKeys = await fetchUsableKeys(stationName);    
     detailData.value.recentUsage = await fetchUsageRecords(stationName);
-    detailData.value.refillHistory = await fetchRefillHistory(stationName);
+    detailData.value.refillHistory = await fetchRefillHistory(stationName, refillHistoryDate.value);
+    await fetchRefillLogRetention();
     detailDialogVisible.value = true;
     console.log(detailData.value);
 
@@ -295,6 +349,14 @@ watch(activeTab, (newVal) => {
     /* 横向排列控件 */
     align-items: center;
     /* 垂直居中 */
+}
+
+.refill-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .app-container {
