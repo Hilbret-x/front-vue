@@ -127,14 +127,18 @@
           class="preview-text"
         >{{ previewData.content || '(空内容)' }}</pre>
 
-        <div v-else-if="previewData.previewType === 'image'" class="image-preview-wrap">
+        <div v-else-if="previewData.previewType === 'image' && previewData.fileUrl" class="image-preview-wrap">
           <img :src="previewData.fileUrl" alt="plain image" class="image-preview"/>
           <el-link :href="previewData.fileUrl" target="_blank" type="primary">新窗口打开图片</el-link>
         </div>
 
-        <div v-else class="binary-preview">
+        <div v-else-if="previewData.fileUrl" class="binary-preview">
           <div>二进制文件不做内容渲染。</div>
           <el-link :href="previewData.fileUrl" target="_blank" type="primary">下载原文文件</el-link>
+        </div>
+
+        <div v-else class="binary-preview">
+          <div>{{ previewData.message || '原文文件不存在，无法预览。' }}</div>
         </div>
       </div>
       <div v-else class="state-text">暂无可预览内容</div>
@@ -184,11 +188,10 @@ function displayPlainName(row) {
 }
 
 function normalizeFileUrl(rawUrl, id) {
-  const fallback = getPlainFileUrl(id);
-  if (!rawUrl) return fallback;
+  if (!rawUrl) return '';
 
   const url = String(rawUrl).trim();
-  if (!url) return fallback;
+  if (!url) return '';
   if (/^https?:\/\//i.test(url)) {
     try {
       const parsed = new URL(url);
@@ -197,12 +200,12 @@ function normalizeFileUrl(rawUrl, id) {
       }
       return url;
     } catch (e) {
-      return fallback;
+      return '';
     }
   }
   if (url.startsWith('/')) return `${serverBaseUrl}${url}`;
   if (url.startsWith('api/')) return `${serverBaseUrl}/${url}`;
-  return fallback;
+  return id ? getPlainFileUrl(id) : '';
 }
 
 function normalizePacket(packet) {

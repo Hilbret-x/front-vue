@@ -48,12 +48,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getAuthRecords } from '@/api/authenticationRecord'
 import AuthenticationStatistics from '@/components/AuthenticationStatistics.vue'
 
 // ======== 表格与分页 ========
 const records = ref([])
+let refreshTimer = null
 
 // 分页变量
 const currentPage = ref(1)
@@ -65,6 +66,11 @@ const loadRecords = async () => {
 
   records.value = res.data.records || []
   total.value = res.data.total || 0
+}
+
+const startAutoRefresh = () => {
+  if (refreshTimer) clearInterval(refreshTimer)
+  refreshTimer = setInterval(loadRecords, 2000)
 }
 
 // 分页相关
@@ -82,6 +88,11 @@ const handleCurrentChange = (val) => {
 // ======== 页面加载 ========
 onMounted(() => {
   loadRecords()
+  startAutoRefresh()
+})
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
 })
 </script>
 

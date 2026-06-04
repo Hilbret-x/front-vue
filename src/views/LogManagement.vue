@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getLogsByPage, searchLogs, exportLogs } from '@/api/securityLog'
 import LogManagement from '@/components/LogManagement.vue'
@@ -68,11 +68,20 @@ const keyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+let refreshTimer = null
 
 const fetchLogs = async () => {
   const { data } = await getLogsByPage(currentPage.value, pageSize.value);
   logs.value = data.data
   total.value = data.total
+}
+
+const refreshLogs = () => {
+  if (keyword.value.trim()) {
+    handleSearch()
+    return
+  }
+  fetchLogs()
 }
 
 // 分页相关
@@ -113,6 +122,14 @@ const handleExport = async (format) => {
 }
 
 onMounted(fetchLogs)
+
+onMounted(() => {
+  refreshTimer = setInterval(refreshLogs, 3000)
+})
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 </script>
 
 <style scoped>

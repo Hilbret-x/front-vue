@@ -325,9 +325,9 @@ watch(
 .waveform-chart {
   width: 100%;
   height: 100%;
-  min-height: 320px;
+  min-height: 0;
   border: 1px solid rgba(210, 223, 229, 0.9);
-  border-radius: 16px;
+  border-radius: 8px;
   background: linear-gradient(180deg, #ffffff 0%, #f7fbfc 100%);
   overflow: hidden;
 }

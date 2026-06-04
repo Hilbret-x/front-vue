@@ -48,16 +48,17 @@ const handleClose = () => {}
           <span>{{ navText.dashboard }}</span>
         </el-menu-item>
 
+        <el-menu-item index="/module/device-auth">
+                <el-icon><OfficeBuilding /></el-icon>
+                <span>{{ navText.deviceAuth }}</span>
+        </el-menu-item>
+
         <el-menu-item index="/module/key-negotiation">
           <el-icon><Promotion /></el-icon>
           <span>{{ navText.keyNegotiation }}</span>
         </el-menu-item>
 
-        <el-menu-item index="/module/device-auth">
-          <el-icon><OfficeBuilding /></el-icon>
-          <span>{{ navText.deviceAuth }}</span>
-        </el-menu-item>
-
+       
         <el-sub-menu index="/module">
           <template #title>
             <el-icon><Tools /></el-icon>

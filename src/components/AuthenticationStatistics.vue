@@ -13,13 +13,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import { getAuthStatistics } from '@/api/authenticationRecord'
 
 // 图表实例
 const chartRef = ref(null)
 let chartInstance = null
+let refreshTimer = null
+const handleResize = () => {
+  chartInstance?.resize()
+}
 
 // 加载统计数据并渲染图表
 const loadStatistics = async () => {
@@ -78,9 +82,15 @@ const renderChart = (data) => {
 
 onMounted(() => {
   loadStatistics()
-  window.addEventListener('resize', () => {
-    chartInstance?.resize()
-  })
+  refreshTimer = setInterval(loadStatistics, 2000)
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+  window.removeEventListener('resize', handleResize)
+  chartInstance?.dispose()
+  chartInstance = null
 })
 </script>
 
